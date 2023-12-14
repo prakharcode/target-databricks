@@ -1,48 +1,52 @@
 from __future__ import annotations
-from datetime import datetime
-import logging
-import time
 
-from typing import List, Tuple, Union
-from uuid import uuid4
-import pyarrow
 import json
+import logging
+from datetime import datetime
+from typing import List, Optional, Tuple, Union
+from uuid import uuid4
+
+import pyarrow
 from pyarrow import Table, fs
 from pyarrow.parquet import ParquetWriter
 
-class s3ParquetStage:
-    def __init__(self,
-                target_name,
-                aws_access_key_id,
-                aws_secret_access_key,
-                aws_session_token,
-                region_name,
-                bucket,
-                prefix,
-                full_table_name,
-                include_process_date,):
 
+class s3ParquetStage:
+    def __init__(
+        self,
+        target_name: str,
+        full_table_name: str,
+        region_name: str,
+        bucket: str,
+        include_process_date: bool,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        aws_session_token: Optional[str] = None,
+        prefix: Optional[str] = None,
+    ):
         self.file_system = fs.S3FileSystem(
-                    access_key=aws_access_key_id,
-                    secret_key=aws_secret_access_key,
-                    session_token=aws_session_token,
-                    region=region_name,
-                )
+            access_key=aws_access_key_id,
+            secret_key=aws_secret_access_key,
+            session_token=aws_session_token,
+            region=region_name,
+        )
         logging.info(f"{target_name}")
         self.bucket = bucket
         self.prefix = prefix if prefix else ""
         self.full_table_name = full_table_name
         self.parquet_schema = None
         self.key = None
-        self.include_process_date=include_process_date
+        self.include_process_date = include_process_date
 
         # prefix with target name
         self.prefix = f"{self.prefix}/{target_name}"
 
     def get_key(self) -> str:
         random_key = f"{int(datetime.now().timestamp())}/{uuid4()}"
-        return f"{self.bucket}/{self.prefix}/{self.full_table_name}/{random_key}.parquet"
-    
+        return (
+            f"{self.bucket}/{self.prefix}/{self.full_table_name}/{random_key}.parquet"
+        )
+
     @property
     def logger(self) -> logging.Logger:
         """Get logger.
@@ -51,7 +55,7 @@ class s3ParquetStage:
             Plugin logger.
         """
         return logging.getLogger("s3ParquetStage")
-    
+
     def sanitize(self, value):
         if isinstance(value, dict) and not value:
             # pyarrow can't process empty struct
@@ -61,7 +65,9 @@ class s3ParquetStage:
             try:
                 return value.encode("utf-16", "surrogatepass").decode("utf-16")
             except Exception as e:
-                self.logger.warning("surrogate encoding failed, serializing string")
+                self.logger.warning(
+                    f"surrogate encoding failed, serializing string {e}", exc_info=True
+                )
                 return json.dumps(value)
         return value
 
@@ -238,15 +244,13 @@ class s3ParquetStage:
     def create_batch(self, records, schema) -> Table:
         """Creates a pyarrow Table object from the record set."""
         try:
-
             parquet_schema = (
-                self.parquet_schema if self.parquet_schema else self.create_schema(schema=schema)
+                self.parquet_schema
+                if self.parquet_schema
+                else self.create_schema(schema=schema)
             )
             fields = set([property.name for property in parquet_schema])
-            input = {
-                f: [self.sanitize(row.get(f)) for row in records]
-                for f in fields
-            }
+            input = {f: [self.sanitize(row.get(f)) for row in records] for f in fields}
 
             ret = Table.from_pydict(mapping=input, schema=parquet_schema)
 
@@ -278,8 +282,7 @@ class s3ParquetStage:
             else:
                 self.logger.error("Failed to write parquet file to S3.")
             raise e
-    
+
     def get_batch_file(self, records, schema) -> Tuple[str, str]:
-        s3_url = self.write_batch(records=records,
-                         schema=schema)
+        s3_url = self.write_batch(records=records, schema=schema)
         return f"parquet.`s3://{s3_url}`", s3_url

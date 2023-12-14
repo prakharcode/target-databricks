@@ -1,39 +1,38 @@
 """databricks target sink class, which handles writing streams."""
 
 from __future__ import annotations
-from datetime import datetime
 
 import typing as t
-from uuid import uuid4
+from datetime import datetime
+from urllib.parse import urlparse
 
 from boto3 import Session
-
-from urllib.parse import urlparse
 from singer_sdk.sinks import SQLSink
+
 from target_databricks.connector import databricksConnector
 from target_databricks.stage.s3_parquet import s3ParquetStage
-
-from target_databricks.connector import databricksConnector
 
 if t.TYPE_CHECKING:
     from singer_sdk import PluginBase
 
+
 def parse_s3_uri(s3_uri):
     # Add a default scheme if it's missing
-    if not s3_uri.startswith('s3://'):
-        s3_uri = 's3://' + s3_uri
+    if not s3_uri.startswith("s3://"):
+        s3_uri = "s3://" + s3_uri
 
     parsed_uri = urlparse(s3_uri)
 
     # Check if the scheme is 's3'
-    if parsed_uri.scheme == 's3':
+    if parsed_uri.scheme == "s3":
         # Extract bucket name and object key (prefix)
         bucket_name = parsed_uri.netloc
-        object_key = parsed_uri.path.lstrip('/')
+        object_key = parsed_uri.path.lstrip("/")
 
         return bucket_name, object_key
     else:
         raise ValueError("Invalid S3 URI. Scheme must be 's3'.")
+
 
 class databricksSink(SQLSink):
     """databricks target sink class."""
@@ -41,7 +40,7 @@ class databricksSink(SQLSink):
     connector_class = databricksConnector
 
     MAX_SIZE_DEFAULT = 100000
-    
+
     def __init__(  # noqa: PLR0913
         self,
         target: PluginBase,
@@ -56,7 +55,7 @@ class databricksSink(SQLSink):
             target=target,
             stream_name=stream_name,
             schema=schema,
-            key_properties=key_properties
+            key_properties=key_properties,
         )
 
     @property
@@ -72,15 +71,17 @@ class databricksSink(SQLSink):
     @property
     def table_name(self) -> str:
         return super().table_name
-    
+
     def activate_version(self, new_version: int) -> None:
         """
-            Not handling table version manuipulation as
-            we prefer merging schema. This handling is done by
-            in SQLConnector class.
+        Not handling table version manuipulation as
+        we prefer merging schema. This handling is done by
+        in SQLConnector class.
         """
-        self.logger.warning(f"Got activate version message but not doing any \
-                            version manipulation, if needed implement at sink level.")
+        self.logger.warning(
+            "Got activate version message but not doing any \
+                            version manipulation, if needed implement at sink level."
+        )
 
     def conform_name(
         self,
@@ -105,8 +106,8 @@ class databricksSink(SQLSink):
     def setup(self) -> None:
         """Set up Sink.
 
-        This method is called on Sink creation, 
-        and creates the Table entities in 
+        This method is called on Sink creation,
+        and creates the Table entities in
         the target database.
         """
         try:
@@ -151,13 +152,13 @@ class databricksSink(SQLSink):
 
         if self.aws_session is None:
             self.aws_session = Session(
-                    aws_access_key_id=self.config.get("aws_access_key_id", None),
-                    aws_secret_access_key=self.config.get("aws_secret_access_key", None),
-                    aws_session_token=self.config.get("aws_session_token", None),
-                    region_name=self.config.get("aws_region"),
-                    profile_name=self.config.get("aws_profile_name", None),
-                )
-        
+                aws_access_key_id=self.config.get("aws_access_key_id", None),
+                aws_secret_access_key=self.config.get("aws_secret_access_key", None),
+                aws_session_token=self.config.get("aws_session_token", None),
+                region_name=self.config.get("aws_region"),
+                profile_name=self.config.get("aws_profile_name", None),
+            )
+
         stager = s3ParquetStage(
             target_name=self.target.name,
             aws_access_key_id=self.aws_session.get_credentials().access_key,
@@ -170,14 +171,14 @@ class databricksSink(SQLSink):
             include_process_date=True,
         )
         source_refenrce, s3_loc = stager.get_batch_file(records=records, schema=schema)
-        
+
         self.insert_batch_file_via_stage(
             full_table_name=full_table_name,
             source_refrence=source_refenrce,
-            s3_loc=s3_loc
+            s3_loc=s3_loc,
         )
         return len(records) if isinstance(records, list) else None
-    
+
     def append_process_date(self, records) -> dict:
         """A function that appends the current UTC to every record"""
 
@@ -186,12 +187,12 @@ class databricksSink(SQLSink):
             return record
 
         return list(map(lambda x: process_date(x), records))
-    
+
     def insert_batch_file_via_stage(
         self,
         full_table_name: str,
         source_refrence: str,
-        s3_loc:str,
+        s3_loc: str,
     ) -> None:
         """Process a batch file with the given batch context.
 
@@ -222,11 +223,14 @@ class databricksSink(SQLSink):
             if self.config.get("clean_up_staged_files"):
                 self.logger.info("Cleaning up after batch processing")
                 # s3 remove source_refrence
-                s3 = self.aws_session.client('s3')
+                s3 = self.aws_session.client("s3")
                 try:
-                # List objects in the specified bucket and prefix
+                    # List objects in the specified bucket and prefix
                     bucket_name, key = parse_s3_uri(s3_uri=s3_loc)
                     s3.delete_object(Bucket=bucket_name, Key=key)
-                    self.logger.info('All objects deleted successfully')
+                    self.logger.info("All objects deleted successfully")
                 except Exception as e:
-                    self.logger.error('{e} => No objects found in the specified bucket and prefix', exc_info=True)
+                    self.logger.error(
+                        f"{e} => No objects found in the specified bucket and prefix",
+                        exc_info=True,
+                    )

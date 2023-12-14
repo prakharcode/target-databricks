@@ -1,15 +1,14 @@
 """databricks target class."""
 
 from __future__ import annotations
-import decimal
 
+import decimal
 import json
+
 from singer_sdk import typing as th
 from singer_sdk.target_base import Target
 
-from target_databricks.sinks import (
-    databricksSink,
-)
+from target_databricks.sinks import databricksSink
 
 
 class Targetdatabricks(Target):
@@ -126,6 +125,7 @@ class Targetdatabricks(Target):
         except json.decoder.JSONDecodeError as exc:
             self.logger.error("Unable to parse:\n%s", line, exc_info=exc)
             raise
+
 
 if __name__ == "__main__":
     Targetdatabricks.cli()
