@@ -1,0 +1,39 @@
+version: 1
+project_id: target-databricks
+default_environment: test
+environments:
+- name: test
+plugins:
+  loaders:
+  - name: target-databricks
+    namespace: target_databricks
+    pip_url: -e .
+    capabilities:
+    - about
+    - stream-maps
+    - record-flattening
+    settings:
+    - name: host
+      kind: password
+    - name: access_token
+      kind: password
+    - name: http_path
+      kind: password
+    - name: catalog
+    - name: aws_access_key_id
+      kind: password
+    - name: aws_secret_access_key
+      kind: password
+    - name: aws_region
+      kind: password
+    - name: aws_profile_name
+    - name: bucket
+      kind: password
+    - name: prefix
+    - name: get_schema_from_tap
+      kind: boolean
+    - name: default_target_schema
+    - name: include_process_date
+      kind: boolean
+    - name: clean_up_staged_files
+      kind: boolean
