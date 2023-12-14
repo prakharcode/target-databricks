@@ -30,8 +30,6 @@ plugins:
     - name: bucket
       kind: password
     - name: prefix
-    - name: get_schema_from_tap
-      kind: boolean
     - name: default_target_schema
     - name: include_process_date
       kind: boolean

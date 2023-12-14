@@ -78,12 +78,6 @@ class Targetdatabricks(Target):
             description="AWS s3 bucket prefix for staging files",
         ),
         th.Property(
-            "get_schema_from_tap",
-            th.BooleanType,
-            secret=False,
-            description="Boolean to determine schema from tap for staging files",
-        ),
-        th.Property(
             "default_target_schema",
             th.StringType,
             secret=False,
@@ -115,13 +109,7 @@ class Targetdatabricks(Target):
         :rtype: dict
         """
         try:
-            get_tap_schema = self.config.get("get_schema_from_tap", False)
-            if get_tap_schema:
-                return json.loads(line)  # type: ignore[no-any-return]
-            else:
-                return json.loads(  # type: ignore[no-any-return]
-                    line, parse_float=decimal.Decimal
-                )
+            return json.loads(line)  # type: ignore[no-any-return]
         except json.decoder.JSONDecodeError as exc:
             self.logger.error("Unable to parse:\n%s", line, exc_info=exc)
             raise
