@@ -189,7 +189,7 @@ class s3ParquetStage:
                             fields.append(pyarrow.field(key, pyarrow.time64()))
                         else:
                             fields.append(
-                                pyarrow.field(key, pyarrow.timestamp("s", tz="utc"))
+                                pyarrow.field(key, pyarrow.timestamp("ms", tz="utc"))
                             )
                     else:
                         fields.append(pyarrow.field(key, pyarrow.string()))
@@ -235,7 +235,7 @@ class s3ParquetStage:
         if self.include_process_date:
             key = "_PROCESS_DATE"
             parquet_schema = parquet_schema.append(
-                pyarrow.field(key, pyarrow.timestamp("s", tz="utc"))
+                pyarrow.field(key, pyarrow.timestamp("ms", tz="utc"))
             )
 
         self.parquet_schema = parquet_schema
