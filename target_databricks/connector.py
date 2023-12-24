@@ -183,7 +183,7 @@ class databricksConnector(SQLConnector):
         # define type maps
 
         string_submaps = [
-            TypeMap(eq, TIMESTAMP_NTZ(), "date-time"),
+            TypeMap(eq, "timestamp", "date-time"),
             TypeMap(contains, sqlalchemy.types.TIME(), "time"),
             TypeMap(eq, sqlalchemy.types.DATE(), "date"),
             TypeMap(eq, DatabricksStringType(), None),
@@ -371,7 +371,6 @@ class databricksConnector(SQLConnector):
             appened_statement, kwargs = self._get_append_statement(
                 full_table_name=full_table_name,
                 source_refrence=source_refrence,
-                schema=schema,
             )
             self.logger.info("Appending with SQL: %s", appened_statement)
             conn.execute(appened_statement, **kwargs)
