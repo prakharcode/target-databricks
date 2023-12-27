@@ -303,11 +303,8 @@ class databricksConnector(SQLConnector):
 
         return (
             text(
-                f"merge into {full_table_name} d using "  # noqa: S608, ISC003
-                + f"(select * from {source_refrence}) s "  # noqa: S608
-                + "on 1=0 "
-                + "when matched then update set * "
-                + "when not matched then insert * "
+                f"insert into {full_table_name} "  # noqa: S608, ISC003
+                + f"(select * from {source_refrence})"  # noqa: S608
             ),
             {},
         )
