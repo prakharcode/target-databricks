@@ -388,13 +388,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "databricks-sql-connector"
-version = "3.0.1"
+version = "3.1.1"
 description = "Databricks SQL Connector for Python"
 optional = false
-python-versions = ">=3.8.0,<4.0.0"
+python-versions = "<4.0.0,>=3.8.0"
 files = [
-    {file = "databricks_sql_connector-3.0.1-py3-none-any.whl", hash = "sha256:3824237732f4363f55e3a1b8dd90ac98b8008c66e869377c8a213581d13dcee2"},
-    {file = "databricks_sql_connector-3.0.1.tar.gz", hash = "sha256:915648d5d43e41622d65446bf60c07b2a0d33f9e5ad03478712205703927fdb8"},
+    {file = "databricks_sql_connector-3.1.1-py3-none-any.whl", hash = "sha256:d00ee9c65d83a1dc22d5503c356910bdb5e6e839b643ae702a4b54480f24cf3e"},
+    {file = "databricks_sql_connector-3.1.1.tar.gz", hash = "sha256:9157b565014c984734877af95abc7d5fb241fe807f6c2537ff26606cd38cd18e"},
 ]
 
 [package.dependencies]
@@ -405,11 +405,11 @@ numpy = [
 ]
 oauthlib = ">=3.1.0,<4.0.0"
 openpyxl = ">=3.0.10,<4.0.0"
-pandas = {version = ">=1.2.5,<3.0.0", markers = "python_version >= \"3.8\""}
+pandas = {version = ">=1.2.5,<2.2.0", markers = "python_version >= \"3.8\""}
 pyarrow = ">=14.0.1,<15.0.0"
 requests = ">=2.18.1,<3.0.0"
 thrift = ">=0.16.0,<0.17.0"
-urllib3 = ">=1.0"
+urllib3 = ">=1.26"
 
 [package.extras]
 alembic = ["alembic (>=1.0.11,<2.0.0)", "sqlalchemy (>=2.0.21)"]
@@ -1801,4 +1801,4 @@ s3 = ["fs-s3fs"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4"
-content-hash = "9b7d0148232f3051186130c04f406827a994aafaccf49d4f5d21351f8d1e3040"
+content-hash = "f8ed0347628ea2756d944afb4eace995af1415c75e4a3fce52b774c8c65f4943"
